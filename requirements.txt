@@ -3,5 +3,6 @@ openai
 pandas
 fastapi
 uvicorn
+requests
 
 
