@@ -5,16 +5,8 @@ import requests
 # Set Streamlit page config
 st.set_page_config(page_title="SHL Assessment Recommender", layout="wide")
 
-# Load local CSV (optional)
-@st.cache_data
-def load_data():
-    try:
-        return pd.read_csv("shl_assessments.csv")
-    except FileNotFoundError:
-        st.warning("⚠️ 'shl_assessments.csv' not found.")
-        return pd.DataFrame()
-
-df = load_data()
+# ✅ URL of your deployed FastAPI backend on Render
+API_URL = "https://shl-fastapi.onrender.com/recommend"
 
 # UI Header
 st.title("🧠 SHL Assessment Recommender")
@@ -31,7 +23,7 @@ if st.button("🔍 Recommend Assessments"):
         with st.spinner("Fetching recommendations..."):
             try:
                 response = requests.post(
-                    "http://127.0.0.1:8000/recommend",
+                    API_URL,
                     headers={
                         "Content-Type": "application/json",
                         "accept": "application/json"
@@ -42,9 +34,6 @@ if st.button("🔍 Recommend Assessments"):
                 if response.status_code == 200:
                     data = response.json()
 
-                    # 🔍 DEBUGGING LINE: Show raw response
-                    st.write("🔎 Raw API response:", data)
-
                     recommendations = data.get("recommendations", [])
 
                     if recommendations:
@@ -54,7 +43,10 @@ if st.button("🔍 Recommend Assessments"):
                         st.warning("❌ No recommendations found. Try rephrasing the job description or using clearer keywords.")
                 else:
                     st.error(f"🚨 Server error: {response.status_code}")
-                    st.json(response.json())
+                    try:
+                        st.json(response.json())
+                    except:
+                        st.write(response.text)
 
             except Exception as e:
                 st.error("❌ Something went wrong while connecting to the backend.")
